@@ -1,6 +1,6 @@
 function [x,R] = perform_admm(x, K,  KS, ProxFS, ProxG, options)
 
-% perform_admm - preconditionned ADMM method
+% perform_admm - preconditioned ADMM method
 %
 %    [x,R] = perform_admm(x, K,  KS, ProxFS, ProxG, options);
 %

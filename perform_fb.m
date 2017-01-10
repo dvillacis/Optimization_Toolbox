@@ -1,6 +1,6 @@
 function [x,R] = perform_fb(x, ProxF, GradG, L, options)
 
-% perform_admm - preconditionned ADMM method
+% perform_fb - Perform FB and FB-like optimization
 %
 %    [x,R] = perform_fb(x, ProxF, GradG, L, options);
 %

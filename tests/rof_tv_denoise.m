@@ -30,42 +30,61 @@ F = @(u)lambda*sum(sum(Amplitude(u)));
 G = @(x)1/2*norm(y-x,'fro')^2;
 
 % The proximity operator of F is the vectorial soft thresholding
-Normalize = @(u)u./repmat(max(Amplitude(u),1e-10), [1 1 2]);
-ProxF = @(u,tau)repmat( perform_soft_thresholding(Amplitude(u),lambda*tau),[1 1 2]).*Normalize(u);
+%Normalize = @(u)u./repmat(max(Amplitude(u),1e-10), [1 1 2]);
+%ProxF = @(u,tau)repmat( perform_soft_thresholding(Amplitude(u),lambda*tau),[1 1 2]).*Normalize(u);
+ProxF = @(u,tau)perform_soft_thresholding(Amplitude(u),lambda*tau);
 ProxFS = compute_dual_prox(ProxF);
 
-% The proximity operator of G
-ProxG = @(x,tau)(x+tau*y)/(1+tau);
 
 % record the progession of the functional
 options.report = @(x)G(x) + F(K(x));
 
+GradG = @(u)u-y;
+
+%%
+% Run FB on the primal ROF Model
+L = 8;
+options.method = 'fb';
+[xFB,EFB] = perform_fb(y,ProxF,GradG,L,options);
+
+%%
+% Run FISTA on the primal ROF Model
+options.method = 'fista';
+[xFISTA,EFISTA] = perform_fb(y,ProxF,GradG,L,options);
+
+%%
+% Run ADMM on the primal ROF Model
+ProxG = @(x,tau)(x+tau*y)/(1+tau); % The proximity operator of G
+options.niter = 300;
+[xADMM,EADMM] = perform_admm(y,K,KS,ProxFS,ProxG,options);
+
+
 %%
 % Run the ADMM algorithm
-options.niter = 300;
-[xAdmm,EAdmm] = perform_admm(y,K,KS,ProxFS,ProxG,options);
-clf;
-imageplot(xAdmm);
+% options.niter = 300;
+% [xAdmm,EAdmm] = perform_admm(y,K,KS,ProxFS,ProxG,options);
+% clf;
+% imageplot(xAdmm);
 
 % Since the problem is strictly convex, we can use a FB scheme on the dual problem
-GradGS = @(x)x+y;
-L = 8;
-options.method = 'fista';
-[xFista,EFista] = perform_fb_strongly(y,K,KS,GradGS,ProxFS,L,options);
-
-options.method = 'fb';
-[xFB,EFB] = perform_fb_strongly(y,K,KS,GradGS,ProxFS,L,options);
-
-options.method = 'nesterov';
-[xNesterov,ENesterov] = perform_fb_strongly(y,K,KS,GradGS,ProxFS,L,options);
+% GradGS = @(x)x+y;
+% L = 8;
+% options.method = 'fista';
+% [xFista,EFista] = perform_fb_strongly(y,K,KS,GradGS,ProxFS,L,options);
+%
+% options.method = 'fb';
+% [xFB,EFB] = perform_fb_strongly(y,K,KS,GradGS,ProxFS,L,options);
+%
+% options.method = 'nesterov';
+% [xNesterov,ENesterov] = perform_fb_strongly(y,K,KS,GradGS,ProxFS,L,options);
 
 
 clf;
-imageplot([y xAdmm xFista xFB xNesterov]);
+imageplot([y xFB xFISTA]);
 
 % Compare energy decays
 figure(2)
-plot([EAdmm(:) EFista(:) EFB(:) ENesterov(:)]);
+plot([EFB(:) EFISTA(:)]);
 axis tight;
-legend('ADMM','FISTA','FB','NESTEROV');
-axis([1 length(EAdmm) EFB(end)*.9 2000]);
+legend('FB','FISTA');
+%axis([1 length(EFB) ]);%EFB(end)*.9 2000]);

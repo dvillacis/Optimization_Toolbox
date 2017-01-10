@@ -1,6 +1,6 @@
 function [x,R] = perform_fb_strongly(x, K, KS, GradFS, ProxGS, L, options)
 
-% perform_admm - preconditionned ADMM method
+% perform_fb_strongly - Forward-Backward for striclty convex functions
 %
 %    [x,R] = perform_fb_strongly(x, K, KS, GradFS, ProxGS, L, options);
 %
